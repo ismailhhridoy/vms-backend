@@ -9,11 +9,15 @@ import com.starkgroup.vms.vehicle.dto.VehicleUpdateRequest;
 import com.starkgroup.vms.vehicle.entity.Vehicle;
 import com.starkgroup.vms.vehicle.entity.VehicleStatus;
 import com.starkgroup.vms.vehicle.repository.VehicleRepository;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -29,7 +33,31 @@ public class VehicleServiceImpl implements VehicleService {
         String query = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
         String comp = (company != null && !company.trim().isEmpty()) ? company.trim() : null;
 
-        List<Vehicle> vehicles = vehicleRepository.searchAndFilter(query, status, comp);
+        Specification<Vehicle> spec = (root, q, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (status != null) {
+                predicates.add(cb.equal(root.get("status"), status));
+            }
+
+            if (comp != null) {
+                predicates.add(cb.equal(cb.lower(root.get("company")), comp.toLowerCase()));
+            }
+
+            if (query != null) {
+                String pattern = "%" + query.toLowerCase() + "%";
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("vehicleNumber")), pattern),
+                        cb.like(cb.lower(root.get("company")), pattern),
+                        cb.like(cb.lower(root.get("brand")), pattern),
+                        cb.like(cb.lower(root.get("model")), pattern)
+                ));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        List<Vehicle> vehicles = vehicleRepository.findAll(spec, Sort.by(Sort.Direction.DESC, "createdAt"));
         return vehicles.stream()
                 .map(VehicleResponse::fromEntity)
                 .toList();
@@ -122,4 +150,3 @@ public class VehicleServiceImpl implements VehicleService {
         return vehicleRepository.findDistinctCompanies();
     }
 }
-
