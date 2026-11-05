@@ -1,10 +1,10 @@
 services:
   - type: web
     name: vms-backend
-    runtime: docker
+    env: docker
     plan: free
     region: oregon
-    dockerfilePath: Dockerfile
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /api/v1/actuator/health
     envVars:
       - key: SPRING_PROFILES_ACTIVE
@@ -30,4 +30,4 @@ databases:
     user: vms_user
     plan: free
     region: oregon
-
+    postgresMajorVersion: "16"
