@@ -1,12 +1,12 @@
 spring:
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${DB_URL:${JDBC_DATABASE_URL:${DATABASE_URL:}}}
+    username: ${DB_USERNAME:${DATABASE_USER:${DATABASE_USERNAME:}}}
+    password: ${DB_PASSWORD:${DATABASE_PASS:${DATABASE_PASSWORD:}}}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: ${HIBERNATE_DDL_AUTO:update}
     show-sql: false
     properties:
       hibernate:
@@ -16,4 +16,3 @@ logging:
   level:
     com.starkgroup.vms: INFO
     org.springframework.web: WARN
-
