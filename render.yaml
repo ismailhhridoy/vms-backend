@@ -30,3 +30,4 @@ databases:
     user: vms_user
     plan: free
     region: oregon
+
